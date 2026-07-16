@@ -79,12 +79,13 @@ def suggest_outfit(user, season: str, occasion: str):
     from .models import ClothingItem
 
     def pick_best(category):
-        candidates = (
-            ClothingItem.objects.filter(owner=user, category=category)
-            .filter(season__in=[season, "any"])
-            .filter(occasion__in=[occasion, "any"])
-            .annotate(worn_count=Count("worn_logs"))
-            .order_by("worn_count", "-created_at")
+        candidates = ClothingItem.objects.filter(owner=user, category=category)
+        if season != "any":
+            candidates = candidates.filter(season__in=[season, "any"])
+        if occasion != "any":
+            candidates = candidates.filter(occasion__in=[occasion, "any"])
+        candidates = candidates.annotate(worn_count=Count("worn_logs")).order_by(
+            "worn_count", "-created_at"
         )
         return candidates.first()
 
