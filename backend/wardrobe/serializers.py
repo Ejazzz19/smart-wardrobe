@@ -1,0 +1,49 @@
+from rest_framework import serializers
+
+from .models import ClothingItem, WornLog
+
+
+class ClothingItemSerializer(serializers.ModelSerializer):
+    # Accepts an uploaded file on write; image_url is populated server-side
+    # after the upload to Cloudinary succeeds (see WardrobeItemViewSet).
+    image = serializers.ImageField(write_only=True, required=False)
+    times_worn = serializers.SerializerMethodField()
+
+    class Meta:
+        model = ClothingItem
+        fields = (
+            "id",
+            "name",
+            "category",
+            "color",
+            "season",
+            "occasion",
+            "image",
+            "image_url",
+            "created_at",
+            "times_worn",
+        )
+        read_only_fields = ("image_url", "created_at")
+
+    def get_times_worn(self, obj):
+        return obj.worn_logs.count()
+
+
+class WornLogSerializer(serializers.ModelSerializer):
+    items = serializers.PrimaryKeyRelatedField(
+        many=True, queryset=ClothingItem.objects.all()
+    )
+
+    class Meta:
+        model = WornLog
+        fields = ("id", "items", "worn_on", "occasion", "created_at")
+        read_only_fields = ("created_at",)
+
+    def validate_items(self, items):
+        request = self.context["request"]
+        for item in items:
+            if item.owner_id != request.user.id:
+                raise serializers.ValidationError(
+                    "One or more items do not belong to the current user."
+                )
+        return items
