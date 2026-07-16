@@ -31,12 +31,13 @@ class ClothingItemSerializer(serializers.ModelSerializer):
 
 class WornLogSerializer(serializers.ModelSerializer):
     items = serializers.PrimaryKeyRelatedField(
-        many=True, queryset=ClothingItem.objects.all()
+        many=True, queryset=ClothingItem.objects.all(), write_only=True
     )
+    items_detail = ClothingItemSerializer(source="items", many=True, read_only=True)
 
     class Meta:
         model = WornLog
-        fields = ("id", "items", "worn_on", "occasion", "created_at")
+        fields = ("id", "items", "items_detail", "worn_on", "occasion", "created_at")
         read_only_fields = ("created_at",)
 
     def validate_items(self, items):

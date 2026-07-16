@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Smart Wardrobe — API Console</title>
+<style>
+  :root {
+    --bg: #0f1115;
+    --panel: #161923;
+    --border: #262b3a;
+    --text: #e4e6eb;
+    --muted: #8b91a5;
+    --accent: #5eead4;
+    --accent-dim: #1f4a44;
+    --error: #f87171;
+    --ok: #4ade80;
+    --mono: "SF Mono", "JetBrains Mono", ui-monospace, Menlo, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--mono);
+    margin: 0;
+    padding: 24px;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+  h1 {
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    margin: 0 0 4px 0;
+    color: var(--accent);
+  }
+  .subtitle { color: var(--muted); margin-bottom: 20px; }
+  .layout {
+    display: grid;
+    grid-template-columns: 340px 1fr;
+    gap: 16px;
+    align-items: start;
+  }
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+  .panel h2 {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    margin: 0 0 12px 0;
+  }
+  label {
+    display: block;
+    font-size: 11px;
+    color: var(--muted);
+    margin: 8px 0 4px;
+  }
+  input, select {
+    width: 100%;
+    background: #0c0e13;
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 7px 8px;
+    border-radius: 4px;
+    font-family: var(--mono);
+    font-size: 12px;
+  }
+  input:focus, select:focus { outline: 1px solid var(--accent); }
+  button {
+    background: var(--accent-dim);
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    padding: 7px 12px;
+    border-radius: 4px;
+    font-family: var(--mono);
+    font-size: 12px;
+    cursor: pointer;
+    margin-top: 10px;
+    width: 100%;
+  }
+  button:hover { background: var(--accent); color: #0c0e13; }
+  button.secondary {
+    background: transparent;
+    color: var(--muted);
+    border-color: var(--border);
+  }
+  button.secondary:hover { background: var(--border); color: var(--text); }
+  .status-line {
+    font-size: 11px;
+    margin-top: 8px;
+    word-break: break-all;
+  }
+  .status-line.ok { color: var(--ok); }
+  .status-line.error { color: var(--error); }
+  .token-box {
+    background: #0c0e13;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 8px;
+    font-size: 10px;
+    color: var(--muted);
+    word-break: break-all;
+    margin-top: 8px;
+    max-height: 60px;
+    overflow-y: auto;
+  }
+  pre {
+    background: #0c0e13;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 12px;
+    font-size: 11px;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    word-break: break-all;
+    max-height: 500px;
+    overflow-y: auto;
+  }
+  .items-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 10px;
+    margin-top: 10px;
+  }
+  .item-card {
+    background: #0c0e13;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 8px;
+    font-size: 11px;
+  }
+  .item-card .name { color: var(--accent); font-weight: 600; }
+  .item-card .meta { color: var(--muted); margin-top: 4px; }
+  .item-card button {
+    margin-top: 6px;
+    padding: 4px;
+    font-size: 10px;
+    background: transparent;
+    border-color: var(--error);
+    color: var(--error);
+  }
+  .item-card button:hover { background: var(--error); color: #0c0e13; }
+  .row { display: flex; gap: 8px; }
+  .row > * { flex: 1; }
+</style>
+</head>
+<body>
+
+<h1>SMART WARDROBE — API CONSOLE</h1>
+<div class="subtitle">Manual test harness for the Django REST API. Not the real UI — just a debugging surface.</div>
+
+<div class="layout">
+  <div>
+    <div class="panel">
+      <h2>Config</h2>
+      <label>API base URL</label>
+      <input id="apiBase" value="http://127.0.0.1:8000/api" />
+    </div>
+
+    <div class="panel">
+      <h2>Auth</h2>
+      <label>Username</label>
+      <input id="authUsername" value="testuser" />
+      <label>Email</label>
+      <input id="authEmail" value="test@example.com" />
+      <label>Password</label>
+      <input id="authPassword" type="password" value="TestPass123!" />
+      <div class="row">
+        <button onclick="register()">Register</button>
+        <button onclick="login()">Login</button>
+      </div>
+      <button class="secondary" onclick="logout()">Logout</button>
+      <div id="authStatus" class="status-line"></div>
+      <label>Access token</label>
+      <div id="tokenBox" class="token-box">(not logged in)</div>
+    </div>
+
+    <div class="panel">
+      <h2>Add clothing item</h2>
+      <label>Name</label>
+      <input id="itemName" value="Blue Denim Jacket" />
+      <label>Category</label>
+      <select id="itemCategory">
+        <option value="top">Top</option>
+        <option value="bottom">Bottom</option>
+        <option value="dress">Dress</option>
+        <option value="outerwear" selected>Outerwear</option>
+        <option value="shoes">Shoes</option>
+        <option value="accessory">Accessory</option>
+      </select>
+      <label>Color</label>
+      <input id="itemColor" value="blue" />
+      <div class="row">
+        <div>
+          <label>Season</label>
+          <select id="itemSeason">
+            <option value="any">Any</option>
+            <option value="hot">Hot</option>
+            <option value="mild" selected>Mild</option>
+            <option value="cold">Cold</option>
+          </select>
+        </div>
+        <div>
+          <label>Occasion</label>
+          <select id="itemOccasion">
+            <option value="any">Any</option>
+            <option value="casual" selected>Casual</option>
+            <option value="formal">Formal</option>
+            <option value="work">Work</option>
+            <option value="sport">Sport</option>
+          </select>
+        </div>
+      </div>
+      <label>Photo (optional — requires Cloudinary keys in .env)</label>
+      <input id="itemImage" type="file" accept="image/*" />
+      <button onclick="createItem()">Add item</button>
+      <div id="itemStatus" class="status-line"></div>
+    </div>
+
+    <div class="panel">
+      <h2>Outfit suggestion</h2>
+      <label>Occasion</label>
+      <select id="suggestOccasion">
+        <option value="any">Any</option>
+        <option value="casual" selected>Casual</option>
+        <option value="formal">Formal</option>
+        <option value="work">Work</option>
+        <option value="sport">Sport</option>
+      </select>
+      <button onclick="useLocation()" class="secondary">Use my location</button>
+      <div class="row">
+        <input id="suggestLat" placeholder="latitude" />
+        <input id="suggestLon" placeholder="longitude" />
+      </div>
+      <button onclick="suggestOutfit()">Suggest outfit</button>
+    </div>
+  </div>
+
+  <div>
+    <div class="panel">
+      <h2>Your items</h2>
+      <button class="secondary" onclick="listItems()">Refresh list</button>
+      <div id="itemsGrid" class="items-grid"></div>
+    </div>
+
+    <div class="panel">
+      <h2>Last response</h2>
+      <pre id="output">(nothing yet — try an action on the left)</pre>
+    </div>
+  </div>
+</div>
+
+<script>
+let accessToken = null;
+let refreshToken = null;
+
+function apiBase() { return document.getElementById('apiBase').value.replace(/\/$/, ''); }
+
+function showOutput(data) {
+  document.getElementById('output').textContent = JSON.stringify(data, null, 2);
+}
+
+function setStatus(elId, message, isError) {
+  const el = document.getElementById(elId);
+  el.textContent = message;
+  el.className = 'status-line ' + (isError ? 'error' : 'ok');
+}
+
+async function apiFetch(path, options = {}) {
+  const headers = options.headers || {};
+  if (accessToken && !options.noAuth) {
+    headers['Authorization'] = 'Bearer ' + accessToken;
+  }
+  const res = await fetch(apiBase() + path, { ...options, headers });
+  let data;
+  try { data = await res.json(); } catch { data = null; }
+  showOutput({ status: res.status, body: data });
+  if (!res.ok) throw { status: res.status, data };
+  return data;
+}
+
+async function register() {
+  try {
+    const body = JSON.stringify({
+      username: document.getElementById('authUsername').value,
+      email: document.getElementById('authEmail').value,
+      password: document.getElementById('authPassword').value,
+    });
+    await apiFetch('/auth/register/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body,
+      noAuth: true,
+    });
+    setStatus('authStatus', 'Registered. Now click Login.', false);
+  } catch (err) {
+    setStatus('authStatus', 'Register failed: ' + JSON.stringify(err.data), true);
+  }
+}
+
+async function login() {
+  try {
+    const body = JSON.stringify({
+      username: document.getElementById('authUsername').value,
+      password: document.getElementById('authPassword').value,
+    });
+    const data = await apiFetch('/auth/login/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body,
+      noAuth: true,
+    });
+    accessToken = data.access;
+    refreshToken = data.refresh;
+    document.getElementById('tokenBox').textContent = accessToken;
+    setStatus('authStatus', 'Logged in.', false);
+  } catch (err) {
+    setStatus('authStatus', 'Login failed: ' + JSON.stringify(err.data), true);
+  }
+}
+
+async function logout() {
+  try {
+    if (refreshToken) {
+      await apiFetch('/auth/logout/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refresh: refreshToken }),
+      });
+    }
+  } catch (e) {
+    // even if blacklist call fails, clear local state
+  }
+  accessToken = null;
+  refreshToken = null;
+  document.getElementById('tokenBox').textContent = '(not logged in)';
+  setStatus('authStatus', 'Logged out.', false);
+}
+
+async function createItem() {
+  if (!accessToken) { setStatus('itemStatus', 'Log in first.', true); return; }
+  try {
+    const formData = new FormData();
+    formData.append('name', document.getElementById('itemName').value);
+    formData.append('category', document.getElementById('itemCategory').value);
+    formData.append('color', document.getElementById('itemColor').value);
+    formData.append('season', document.getElementById('itemSeason').value);
+    formData.append('occasion', document.getElementById('itemOccasion').value);
+    const fileInput = document.getElementById('itemImage');
+    if (fileInput.files[0]) formData.append('image', fileInput.files[0]);
+
+    await apiFetch('/items/', { method: 'POST', body: formData });
+    setStatus('itemStatus', 'Item created.', false);
+    listItems();
+  } catch (err) {
+    setStatus('itemStatus', 'Create failed: ' + JSON.stringify(err.data), true);
+  }
+}
+
+async function listItems() {
+  if (!accessToken) { setStatus('itemStatus', 'Log in first.', true); return; }
+  try {
+    const data = await apiFetch('/items/');
+    const items = data.results || data;
+    const grid = document.getElementById('itemsGrid');
+    grid.innerHTML = '';
+    items.forEach(item => {
+      const card = document.createElement('div');
+      card.className = 'item-card';
+      card.innerHTML = `
+        <div class="name">${item.name}</div>
+        <div class="meta">${item.category} · ${item.color} · ${item.season}/${item.occasion}</div>
+        <div class="meta">worn ${item.times_worn}x</div>
+        <button onclick="deleteItem(${item.id})">Delete</button>
+      `;
+      grid.appendChild(card);
+    });
+  } catch (err) {
+    setStatus('itemStatus', 'List failed: ' + JSON.stringify(err.data), true);
+  }
+}
+
+async function deleteItem(id) {
+  try {
+    await apiFetch(`/items/${id}/`, { method: 'DELETE' });
+    listItems();
+  } catch (err) {
+    setStatus('itemStatus', 'Delete failed: ' + JSON.stringify(err.data), true);
+  }
+}
+
+function useLocation() {
+  if (!navigator.geolocation) return;
+  navigator.geolocation.getCurrentPosition(pos => {
+    document.getElementById('suggestLat').value = pos.coords.latitude.toFixed(4);
+    document.getElementById('suggestLon').value = pos.coords.longitude.toFixed(4);
+  });
+}
+
+async function suggestOutfit() {
+  if (!accessToken) { setStatus('itemStatus', 'Log in first.', true); return; }
+  const occasion = document.getElementById('suggestOccasion').value;
+  const lat = document.getElementById('suggestLat').value;
+  const lon = document.getElementById('suggestLon').value;
+  let path = `/outfits/suggest/?occasion=${occasion}`;
+  if (lat && lon) path += `&lat=${lat}&lon=${lon}`;
+  try {
+    await apiFetch(path);
+  } catch (err) {
+    // error already shown in output panel
+  }
+}
+</script>
+
+</body>
+</html>
