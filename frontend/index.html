@@ -8,6 +8,8 @@
 </head>
 <body>
 
+<div id="toastContainer" class="toast-container"></div>
+
 <div id="authScreen" class="auth-wrap">
   <h1>Smart Wardrobe</h1>
   <div class="tagline">catalog your closet · dress for the weather</div>
@@ -127,12 +129,36 @@
             </select>
           </div>
           <div class="full">
+            <label>Price paid (optional — for cost-per-wear)</label>
+            <input id="newItemPrice" type="number" step="0.01" min="0" placeholder="e.g. 45.00">
+          </div>
+          <div class="full">
             <label>Photo (optional)</label>
-            <input id="newItemImage" type="file" accept="image/*">
+            <div class="photo-input-row">
+              <input id="newItemImage" type="file" accept="image/*" capture="environment" onchange="handleFileChosen(event)">
+              <button type="button" class="btn btn-ghost" onclick="openCamera()">📷 Take photo</button>
+            </div>
+            <div id="cameraPanel" class="camera-panel" style="display:none;">
+              <video id="cameraVideo" autoplay playsinline></video>
+              <div class="camera-controls">
+                <button type="button" class="btn btn-primary" style="width:auto;" onclick="capturePhoto()">Capture</button>
+                <button type="button" class="btn btn-ghost" onclick="closeCamera()">Cancel</button>
+              </div>
+            </div>
+            <canvas id="cameraCanvas" style="display:none;"></canvas>
+            <div id="imagePreviewWrap" style="display:none;">
+              <img id="imagePreview" class="image-preview" />
+              <button type="button" class="btn btn-ghost" onclick="clearImageSelection()">Remove photo</button>
+            </div>
           </div>
         </div>
         <button class="btn btn-primary" style="width:auto; margin-top:16px;" onclick="handleAddItem()">Add to wardrobe</button>
         <span id="addItemStatus" class="form-error"></span>
+      </div>
+
+      <div class="wardrobe-toolbar">
+        <input id="wardrobeSearch" placeholder="Search your closet…" oninput="loadWardrobe()">
+        <button id="leastWornToggle" class="btn btn-ghost" onclick="toggleLeastWorn()">💤 Show neglected items</button>
       </div>
 
       <div class="filter-chips" id="filterChips">

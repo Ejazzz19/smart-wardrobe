@@ -2,7 +2,7 @@
  * Thin API client for the Smart Wardrobe backend.
  * Keeps all fetch/JWT plumbing in one place so app.js stays about UI, not HTTP.
  */
-const API_BASE = window.localStorage ? (window.__API_BASE__ || 'https://smart-wardrobe-omega.vercel.app/api') : 'https://smart-wardrobe-omega.vercel.app/api';
+const API_BASE = window.localStorage ? (window.__API_BASE__ || 'http://127.0.0.1:8001/api') : 'http://127.0.0.1:8001/api';
 
 const Auth = {
   access: null,
@@ -117,5 +117,9 @@ const Api = {
   async wearHistory() {
     const data = await request('/outfits/history/');
     return data.results || data;
+  },
+
+  async deleteHistoryEntry(id) {
+    return request(`/outfits/history/${id}/`, { method: 'DELETE' });
   },
 };

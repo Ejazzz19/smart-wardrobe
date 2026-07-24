@@ -460,3 +460,91 @@ input:focus, select:focus { outline: 2px solid var(--moss); outline-offset: 1px;
   main { padding: 24px 20px 60px; }
   .form-grid { grid-template-columns: 1fr; }
 }
+
+/* ---------- Toasts ---------- */
+.toast-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.toast {
+  background: var(--ink);
+  color: var(--canvas);
+  font-family: var(--mono);
+  font-size: 12px;
+  padding: 10px 16px;
+  border-radius: 5px;
+  box-shadow: 0 4px 14px var(--shadow);
+  animation: toast-in 0.2s ease;
+  max-width: 300px;
+}
+.toast.error { background: var(--thread); }
+.toast.success { border-left: 3px solid var(--moss); }
+@keyframes toast-in {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ---------- Camera / photo capture ---------- */
+.photo-input-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.photo-input-row input[type="file"] { flex: 1; }
+.camera-panel {
+  margin-top: 10px;
+  background: #0c0e13;
+  border-radius: 8px;
+  padding: 10px;
+  text-align: center;
+}
+.camera-panel video {
+  width: 100%;
+  max-width: 320px;
+  border-radius: 6px;
+}
+.camera-controls {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin-top: 10px;
+}
+.camera-controls .btn { width: auto; }
+.image-preview {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid var(--line);
+  margin-top: 10px;
+  display: block;
+}
+#imagePreviewWrap { margin-top: 8px; }
+#imagePreviewWrap .btn { width: auto; margin-top: 6px; padding: 4px 10px; font-size: 11px; }
+
+/* ---------- Wardrobe toolbar ---------- */
+.wardrobe-toolbar {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.wardrobe-toolbar input {
+  flex: 1;
+  min-width: 200px;
+}
+.wardrobe-toolbar .btn { width: auto; margin-top: 0; white-space: nowrap; }
+.wardrobe-toolbar .btn.active { background: var(--moss); color: var(--card); border-color: var(--moss); }
+
+/* ---------- Cost per wear badge ---------- */
+.tag-card .cost-per-wear {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--moss);
+  margin-top: 3px;
+}

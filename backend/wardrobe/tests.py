@@ -26,6 +26,31 @@ class TempToSeasonTests(TestCase):
         self.assertEqual(temp_to_season(-5), "cold")
 
 
+class CostPerWearTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username="tester", password="pass1234!")
+
+    def test_no_price_returns_none(self):
+        item = ClothingItem.objects.create(owner=self.user, name="shirt", category="top", price=None)
+        from .serializers import ClothingItemSerializer
+        data = ClothingItemSerializer(item).data
+        self.assertIsNone(data["cost_per_wear"])
+
+    def test_price_but_never_worn_returns_none(self):
+        item = ClothingItem.objects.create(owner=self.user, name="shirt", category="top", price=50)
+        from .serializers import ClothingItemSerializer
+        data = ClothingItemSerializer(item).data
+        self.assertIsNone(data["cost_per_wear"])
+
+    def test_price_divided_by_wear_count(self):
+        item = ClothingItem.objects.create(owner=self.user, name="shirt", category="top", price=50)
+        WornLog.objects.create(owner=self.user, worn_on=date.today()).items.set([item])
+        WornLog.objects.create(owner=self.user, worn_on=date.today()).items.set([item])
+        from .serializers import ClothingItemSerializer
+        data = ClothingItemSerializer(item).data
+        self.assertEqual(data["cost_per_wear"], 25.0)
+
+
 class SuggestOutfitTests(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(username="tester", password="pass1234!")

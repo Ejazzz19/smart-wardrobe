@@ -38,6 +38,7 @@ class ClothingItem(models.Model):
     season = models.CharField(max_length=10, choices=SEASON_CHOICES, default="any")
     occasion = models.CharField(max_length=10, choices=OCCASION_CHOICES, default="any")
     image_url = models.URLField(blank=True)  # Cloudinary-hosted URL
+    price = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

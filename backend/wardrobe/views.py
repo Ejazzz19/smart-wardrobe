@@ -108,3 +108,13 @@ class WornLogListCreateView(generics.ListCreateAPIView):
 
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
+
+
+class WornLogDetailView(generics.DestroyAPIView):
+    """DELETE /api/outfits/history/{id}/ - remove a wear history entry."""
+
+    serializer_class = WornLogSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return WornLog.objects.filter(owner=self.request.user)

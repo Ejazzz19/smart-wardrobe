@@ -8,6 +8,7 @@ class ClothingItemSerializer(serializers.ModelSerializer):
     # after the upload to Cloudinary succeeds (see WardrobeItemViewSet).
     image = serializers.ImageField(write_only=True, required=False)
     times_worn = serializers.SerializerMethodField()
+    cost_per_wear = serializers.SerializerMethodField()
 
     class Meta:
         model = ClothingItem
@@ -20,13 +21,21 @@ class ClothingItemSerializer(serializers.ModelSerializer):
             "occasion",
             "image",
             "image_url",
+            "price",
             "created_at",
             "times_worn",
+            "cost_per_wear",
         )
         read_only_fields = ("image_url", "created_at")
 
     def get_times_worn(self, obj):
         return obj.worn_logs.count()
+
+    def get_cost_per_wear(self, obj):
+        worn_count = obj.worn_logs.count()
+        if obj.price is None or worn_count == 0:
+            return None
+        return round(float(obj.price) / worn_count, 2)
 
 
 class WornLogSerializer(serializers.ModelSerializer):
